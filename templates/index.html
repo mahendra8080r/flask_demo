@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Database</title>
+    <style>
+        body  { font-family: Arial; margin: 40px; background: #f4f4f4; }
+        table { border-collapse: collapse; width: 60%; background: white; }
+        th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+        th    { background-color: #4CAF50; color: white; }
+    </style>
+</head>
+<body>
+    <h2>Student Records from Database</h2>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>City</th>
+        </tr>
+        <!-- Jinja2 loop — Flask sends 'students' list to this template -->
+        {% for student in students %}
+        <tr>
+            <td>{{ student[0] }}</td>  <!-- ID -->
+            <td>{{ student[1] }}</td>  <!-- Name -->
+            <td>{{ student[2] }}</td>  <!-- City -->
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

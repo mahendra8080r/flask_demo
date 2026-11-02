@@ -1,0 +1,63 @@
+---
+- name: Deploy Flask App with Latest Python
+  hosts: webservers
+  become: yes   # run as sudo
+
+  vars:
+    app_dir: /opt/flask-demo   # deployment directory on remote server
+
+  tasks:
+
+    - name: Update apt package cache
+      apt:
+        update_cache: yes
+
+    - name: Install Python3, pip and venv
+      apt:
+        name:
+          - python3
+          - python3-pip
+          - python3-venv
+        state: present
+
+    - name: Create app directory
+      file:
+        path: "{{ app_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Copy app.py and requirements.txt
+      copy:
+        src: "{{ item }}"
+        dest: "{{ app_dir }}/{{ item }}"
+      loop:
+        - app.py
+        - requirements.txt
+
+    - name: Copy templates folder
+      copy:
+        src: templates
+        dest: "{{ app_dir }}"
+
+    - name: Install dependencies inside a virtualenv
+      pip:
+        requirements: "{{ app_dir }}/requirements.txt"
+        virtualenv: "{{ app_dir }}/venv"
+        virtualenv_command: python3 -m venv
+
+    - name: Stop old app instance (if running)
+      shell: pkill -f '[/]opt/flask-demo/app.py' || true
+      changed_when: false
+
+    - name: Start Flask app in background
+      shell: |
+        cd {{ app_dir }}
+        nohup {{ app_dir }}/venv/bin/python app.py > /tmp/flask.log 2>&1 &
+      # nohup = keeps app running after SSH session closes
+
+    - name: Allow port 5000 in firewall (skipped if ufw is missing)
+      ufw:
+        rule: allow
+        port: "5000"
+        proto: tcp
+      ignore_errors: yes
